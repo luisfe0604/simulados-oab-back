@@ -7,7 +7,7 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: "/users/auth/google/callback",
+      callbackURL: "https://simulados-oab-back.onrender.com/users/auth/google/callback",
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
