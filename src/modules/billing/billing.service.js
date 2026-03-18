@@ -19,8 +19,8 @@ async function createCheckoutSession(user) {
       trial_period_days: 7,
     },
 
-    success_url: "http://localhost:3000/painel",
-    cancel_url: "http://localhost:3000/assinar",
+    success_url: "http://https://simulados-oab-back.onrender.com/painel",
+    cancel_url: "http://https://simulados-oab-back.onrender.com/assinar",
   });
 
   return session;
