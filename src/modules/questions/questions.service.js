@@ -22,7 +22,7 @@ async function create(data) {
     // Inserir questão
     const questionResult = await client.query(
       `
-      INSERT INTO questions
+      INSERT INTO public.questions
       (statement, option_a, option_b, option_c, option_d, option_e, correct_option, difficulty, exam_id)
       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
       RETURNING *
@@ -46,7 +46,7 @@ async function create(data) {
     for (let subjectId of subjects) {
       await client.query(
         `
-        INSERT INTO question_subjects (question_id, subject_id)
+        INSERT INTO public.question_subjects (question_id, subject_id)
         VALUES ($1,$2)
         `,
         [question.id, subjectId]
@@ -74,13 +74,13 @@ async function generate({ subject_id, limit }) {
     SELECT 
       q.*,
       e.name as exam_name
-    FROM questions q
-    LEFT JOIN exams e ON e.id = q.exam_id
+    FROM public.questions q
+    LEFT JOIN public.exams e ON e.id = q.exam_id
   `;
 
   if (subject_id) {
     query += `
-      JOIN question_subjects qs ON qs.question_id = q.id
+      JOIN public.question_subjects qs ON qs.question_id = q.id
     `;
     conditions.push(`qs.subject_id = $${index}`);
     values.push(parseInt(subject_id));

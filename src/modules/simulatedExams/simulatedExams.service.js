@@ -12,7 +12,7 @@ async function finishSimulado({ userId, answers, duration_seconds }) {
     const questionsResult = await client.query(
       `
       SELECT id, correct_option
-      FROM questions
+      FROM public.questions
       WHERE id = ANY($1)
       `,
       [questionIds],
@@ -41,7 +41,7 @@ async function finishSimulado({ userId, answers, duration_seconds }) {
     // Criar simulado
     const simulatedResult = await client.query(
       `
-      INSERT INTO simulated_exams
+      INSERT INTO public.simulated_exams
       (user_id, total_questions, correct_answers, score, duration_seconds)
       VALUES ($1,$2,$3,$4,$5)
       RETURNING *
@@ -58,7 +58,7 @@ async function finishSimulado({ userId, answers, duration_seconds }) {
 
       await client.query(
         `
-        INSERT INTO simulated_exam_questions
+        INSERT INTO public.simulated_exam_questions
         (simulated_exam_id, question_id, selected_option, is_correct)
         VALUES ($1, $2, $3, $4)
         `,
@@ -99,7 +99,7 @@ async function listSimulados({ userId, page, limit }) {
       score,
       created_at,
       duration_seconds
-    FROM simulated_exams
+    FROM public.simulated_exams
     WHERE user_id = $1
     ORDER BY created_at DESC
     LIMIT $2 OFFSET $3
@@ -114,7 +114,7 @@ async function listSimulados({ userId, page, limit }) {
 
   const countResult = await pool.query(
     `
-    SELECT COUNT(*) FROM simulated_exams
+    SELECT COUNT(*) FROM public.simulated_exams
     WHERE user_id = $1
     `,
     [userId],
@@ -138,7 +138,7 @@ async function getSimuladoById({ userId, simulatedId }) {
   const simuladoResult = await pool.query(
     `
     SELECT id, total_questions, correct_answers, score, created_at
-    FROM simulated_exams
+    FROM public.simulated_exams
     WHERE id = $1 AND user_id = $2
     `,
     [simulatedId, userId],
@@ -164,8 +164,8 @@ async function getSimuladoById({ userId, simulatedId }) {
       q.correct_option,
       seq.selected_option,
       seq.is_correct
-    FROM simulated_exam_questions seq
-    JOIN questions q ON q.id = seq.question_id
+    FROM public.simulated_exam_questions seq
+    JOIN public.questions q ON q.id = seq.question_id
     WHERE seq.simulated_exam_id = $1
     `,
     [simulatedId],
@@ -182,8 +182,8 @@ async function generateWrongQuestionsSimulado({ userId, limit = 20 }) {
     `
     SELECT DISTINCT ON (seq.question_id)
       seq.question_id
-      FROM simulated_exam_questions seq
-      JOIN simulated_exams se ON se.id = seq.simulated_exam_id
+      FROM public.simulated_exam_questions seq
+      JOIN public.simulated_exams se ON se.id = seq.simulated_exam_id
     WHERE se.user_id = $1
     AND seq.is_correct = false
     ORDER BY seq.question_id DESC
@@ -201,8 +201,8 @@ async function generateWrongQuestionsSimulado({ userId, limit = 20 }) {
     SELECT 
       q.*,
       e.name as exam_name
-    FROM questions q
-    LEFT JOIN exams e ON e.id = q.exam_id
+    FROM public.questions q
+    LEFT JOIN public.exams e ON e.id = q.exam_id
     WHERE q.id = ANY($1)
     `,
     [ids],
@@ -243,8 +243,8 @@ async function generateOABSimulado() {
       SELECT 
         q.*,
         e.name as exam_name
-      FROM questions q
-      JOIN question_subjects qs
+      FROM public.questions q
+      JOIN public.question_subjects qs
         ON qs.question_id = q.id
       LEFT JOIN exams e ON e.id = q.exam_id
       WHERE qs.subject_id = $1

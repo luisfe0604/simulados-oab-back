@@ -43,7 +43,7 @@ async function handleWebhook(body, signature) {
       const email = session.customer_email;
 
       await pool.query(
-        `UPDATE users 
+        `UPDATE public.users 
          SET subscription_status = 'active',
              plan = 'premium',
              subscription_started_at = NOW()
@@ -60,7 +60,7 @@ async function handleWebhook(body, signature) {
       const email = invoice.customer_email;
 
       await pool.query(
-        `UPDATE users 
+        `UPDATE public.users 
          SET subscription_status = 'past_due'
          WHERE email = $1`,
         [email]
@@ -75,7 +75,7 @@ async function handleWebhook(body, signature) {
       const customerId = subscription.customer;
 
       await pool.query(
-        `UPDATE users 
+        `UPDATE public.users 
          SET subscription_status = 'canceled',
              subscription_cancelled_at = NOW()
          WHERE gateway_customer_id = $1`,

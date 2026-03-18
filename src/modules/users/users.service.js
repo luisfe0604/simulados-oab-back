@@ -2,14 +2,13 @@ const pool = require("../../database/connection");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
-async function register(name, email, password) {
-
+async function register({ name, email, password }) {
   if (password.length < 6 || password == null) {
     throw new Error("Senha deve ter pelo menos 6 caracteres");
   }
 
   const existing = await pool.query(
-    "SELECT id FROM users WHERE email = $1",
+    "SELECT id FROM public.users WHERE email = $1",
     [email]
   );
 
@@ -20,7 +19,7 @@ async function register(name, email, password) {
   const hashedPassword = await bcrypt.hash(password, 10);
 
   const result = await pool.query(
-    `INSERT INTO users 
+    `INSERT INTO public.users 
     (name, email, password_hash, plan, subscription_status, trial_end)
     VALUES ($1, $2, $3, 'trial', 'trial', NOW() + INTERVAL '7 days')
     RETURNING id, name, email`,
@@ -38,7 +37,7 @@ async function create({ name, email, password }) {
   }
 
   const result = await pool.query(
-    `INSERT INTO users
+    `INSERT INTO public.users
       (name, email, password_hash, plan, subscription_status, trial_end, created_at)
      VALUES ($1, $2, $3, 'trial', 'trial', NOW() + INTERVAL '7 days', NOW())
      RETURNING *`,
@@ -49,7 +48,7 @@ async function create({ name, email, password }) {
 }
 
 async function login({ email, password }) {
-  const result = await pool.query("SELECT * FROM users WHERE email = $1", [
+  const result = await pool.query("SELECT * FROM public.users WHERE email = $1", [
     email,
   ]);
 
@@ -74,7 +73,7 @@ async function login({ email, password }) {
 
 async function findByEmail(email) {
   const result = await pool.query(
-    "SELECT * FROM users WHERE email = $1",
+    "SELECT * FROM public.users WHERE email = $1",
     [email]
   );
 
@@ -83,7 +82,7 @@ async function findByEmail(email) {
 
 async function findById(id) {
   const result = await pool.query(
-    "SELECT * FROM users WHERE id = $1",
+    "SELECT * FROM public.users WHERE id = $1",
     [id]
   );
 
