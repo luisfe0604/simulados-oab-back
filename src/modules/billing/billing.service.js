@@ -3,8 +3,6 @@ const pool = require("../../database/connection");
 
 async function createCheckoutSession(user) {
 
-  console.log(user)
-
   const session = await stripe.checkout.sessions.create({
     mode: "subscription",
 
@@ -24,6 +22,7 @@ async function createCheckoutSession(user) {
     success_url: "https://simulados-oab-back.onrender.com/painel",
     cancel_url: "https://simulados-oab-back.onrender.com/assinar",
   });
+  console.log(session)
 
   return session;
 
