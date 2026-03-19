@@ -3,6 +3,8 @@ const pool = require("../../database/connection");
 
 async function createCheckoutSession(user) {
 
+  console.log(user)
+
   const session = await stripe.checkout.sessions.create({
     mode: "subscription",
 
