@@ -13,9 +13,9 @@ async function createCheckoutSession(req, res) {
 
     const user = await userService.findById(userId);
 
-    console.log(user)
-
     const session = await service.createCheckoutSession(user);
+
+    console.log(session)
 
     res.json({
       url: session.url
