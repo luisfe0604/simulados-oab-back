@@ -1,11 +1,15 @@
 const service = require("./billing.service");
+const userService = require("../users/users.service");
+
 const webhook = require("../../services/webhook.service");
 
 async function createCheckoutSession(req, res) {
 
   try {
 
-    const user = req.user;
+    const userId = req.userId;
+
+    const user = await userService.findById(userId);
 
     const session = await service.createCheckoutSession(user);
 
