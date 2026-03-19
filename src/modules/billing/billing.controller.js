@@ -5,9 +5,10 @@ async function createCheckoutSession(req, res) {
 
   try {
 
-    console.log(user)
-
     const user = req.user;
+
+        console.log(user)
+
 
     const session = await service.createCheckoutSession(user);
 
