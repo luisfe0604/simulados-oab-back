@@ -9,7 +9,11 @@ async function createCheckoutSession(req, res) {
 
     const userId = req.userId;
 
+    console.log(userId)
+
     const user = await userService.findById(userId);
+
+    console.log(user)
 
     const session = await service.createCheckoutSession(user);
 
