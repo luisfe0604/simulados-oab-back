@@ -1,8 +1,6 @@
 const usersService = require("./users.service");
 const jwt = require("jsonwebtoken");
 
-const jwt = require("jsonwebtoken");
-
 async function register(req, res) {
   try {
     const user = await usersService.register(req.body);
