@@ -52,26 +52,29 @@ router.get(
           `${process.env.FRONTEND_URL}/auth-success?token=${token}`,
         );
       }
-      console.log(user)
-      if (user.gateway_customer_id) {
-        const session = await stripe.checkout.sessions.create({
-          mode: "subscription",
-          customer_email: user.email,
-          line_items: [
-            {
-              price: process.env.STRIPE_PRICE_ID,
-              quantity: 1,
-            },
-          ],
-          metadata: {
-            userId: user.id,
-          },
-          success_url: `${process.env.FRONTEND_URL}/sucesso?token=${token}`,
-          cancel_url: `${process.env.FRONTEND_URL}/cancelado`,
-        });
+      const session = await stripe.checkout.sessions.create({
+        mode: "subscription",
 
-        return res.redirect(session.url);
-      }
+        ...(user.gateway_customer_id
+          ? { customer: user.gateway_customer_id }
+          : { customer_email: user.email }),
+
+        line_items: [
+          {
+            price: process.env.STRIPE_PRICE_ID,
+            quantity: 1,
+          },
+        ],
+
+        metadata: {
+          userId: user.id,
+        },
+
+        success_url: `${process.env.FRONTEND_URL}/sucesso?token=${token}`,
+        cancel_url: `${process.env.FRONTEND_URL}/cancelado`,
+      });
+
+      return res.redirect(session.url);
     } catch (err) {
       console.error(err);
       return res.redirect(`${process.env.FRONTEND_URL}/login`);
