@@ -21,7 +21,7 @@ async function register({ name, email, password }) {
   const result = await pool.query(
     `INSERT INTO public.users 
     (name, email, password_hash, plan, subscription_status, trial_end)
-    VALUES ($1, $2, $3, 'trial', 'trial', NOW() + INTERVAL '7 days')
+    VALUES ($1, $2, $3, 'free', 'inactive', NOW() + INTERVAL '7 days')
     RETURNING id, name, email`,
     [name, email, hashedPassword]
   );
@@ -39,7 +39,7 @@ async function create({ name, email, password }) {
   const result = await pool.query(
     `INSERT INTO public.users
       (name, email, password_hash, plan, subscription_status, trial_end, created_at)
-     VALUES ($1, $2, $3, 'trial', 'trial', NOW() + INTERVAL '7 days', NOW())
+     VALUES ($1, $2, $3, 'free', 'inactive', NULL, NOW())
      RETURNING *`,
     [name, email, passwordHash]
   );

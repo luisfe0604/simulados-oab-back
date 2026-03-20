@@ -5,7 +5,6 @@ async function register(req, res) {
   try {
     const user = await usersService.register(req.body);
 
-    // 🔐 cria token
     const token = jwt.sign(
       {
         id: user.id,

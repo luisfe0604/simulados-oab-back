@@ -13,6 +13,20 @@ router.get("/me", authMiddleware, controller.me);
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
+function hasAccess(user) {
+  if (user.subscription_status === "active") return true;
+
+  if (
+    user.subscription_status === "trial" &&
+    user.trial_end &&
+    new Date(user.trial_end).getTime() > Date.now()
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
 router.get(
   "/auth/google",
   passport.authenticate("google", {
@@ -33,37 +47,30 @@ router.get(
         { expiresIn: "7d" },
       );
 
-      // 🔴 se já for premium, não manda pro checkout
-      const hasActiveAccess =
-        user.subscription_status === "active" ||
-        (user.subscription_status === "trial" &&
-          user.trial_end &&
-          new Date(user.trial_end) > new Date());
-
-      // 🔴 se já tem acesso, não manda pro Stripe
-      if (hasActiveAccess) {
-        return res.redirect(`${process.env.FRONTEND_URL}/auth-success?token=${token}`);
+      if (hasAccess(user)) {
+        return res.redirect(
+          `${process.env.FRONTEND_URL}/auth-success?token=${token}`,
+        );
       }
-
-      // 💳 cria checkout
-      const session = await stripe.checkout.sessions.create({
-        mode: "subscription",
-        customer_email: user.email,
-        line_items: [
-          {
-            price: process.env.STRIPE_PRICE_ID, // 🔥 seu price_id
-            quantity: 1,
+      if (user.gateway_customer_id) {
+        const session = await stripe.checkout.sessions.create({
+          mode: "subscription",
+          customer_email: user.email,
+          line_items: [
+            {
+              price: process.env.STRIPE_PRICE_ID,
+              quantity: 1,
+            },
+          ],
+          metadata: {
+            userId: user.id,
           },
-        ],
-        metadata: {
-          userId: user.id,
-        },
-        success_url: `${process.env.FRONTEND_URL}/sucesso?token=${token}`,
-        cancel_url: `${process.env.FRONTEND_URL}/cancelado`,
-      });
+          success_url: `${process.env.FRONTEND_URL}/sucesso?token=${token}`,
+          cancel_url: `${process.env.FRONTEND_URL}/cancelado`,
+        });
 
-      // 🚀 redireciona direto pro Stripe
-      return res.redirect(session.url);
+        return res.redirect(session.url);
+      }
     } catch (err) {
       console.error(err);
       return res.redirect(`${process.env.FRONTEND_URL}/login`);
