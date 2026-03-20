@@ -33,6 +33,8 @@ router.get(
         { expiresIn: "7d" }
       );
 
+      console.log(user)
+
       // 🔴 se já for premium, não manda pro checkout
       if (user.is_premium) {
         return res.redirect(
