@@ -17,7 +17,7 @@ router.get(
   "/auth/google",
   passport.authenticate("google", {
     scope: ["profile", "email"],
-  })
+  }),
 );
 
 router.get(
@@ -30,16 +30,19 @@ router.get(
       const token = jwt.sign(
         { id: user.id, email: user.email },
         process.env.JWT_SECRET,
-        { expiresIn: "7d" }
+        { expiresIn: "7d" },
       );
 
-      console.log(user)
-
       // 🔴 se já for premium, não manda pro checkout
-      if (user.is_premium) {
-        return res.redirect(
-          `${process.env.FRONTEND_URL}?token=${token}`
-        );
+      const hasActiveAccess =
+        user.subscription_status === "active" ||
+        (user.subscription_status === "trial" &&
+          user.trial_end &&
+          new Date(user.trial_end) > new Date());
+
+      // 🔴 se já tem acesso, não manda pro Stripe
+      if (hasActiveAccess) {
+        return res.redirect(`${process.env.FRONTEND_URL}?token=${token}`);
       }
 
       // 💳 cria checkout
@@ -61,12 +64,11 @@ router.get(
 
       // 🚀 redireciona direto pro Stripe
       return res.redirect(session.url);
-
     } catch (err) {
       console.error(err);
       return res.redirect(`${process.env.FRONTEND_URL}/login`);
     }
-  }
+  },
 );
 
 module.exports = router;
