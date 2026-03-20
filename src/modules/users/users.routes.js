@@ -52,6 +52,7 @@ router.get(
           `${process.env.FRONTEND_URL}/auth-success?token=${token}`,
         );
       }
+      console.log(user)
       if (user.gateway_customer_id) {
         const session = await stripe.checkout.sessions.create({
           mode: "subscription",
