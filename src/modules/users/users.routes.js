@@ -44,6 +44,7 @@ router.get(
 
       // 🔴 se já tem acesso, não manda pro Stripe
       if (hasActiveAccess) {
+        console.log(hasActiveAccess)
         return res.redirect(`${process.env.FRONTEND_URL}?token=${token}`);
       }
 
