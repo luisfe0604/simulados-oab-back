@@ -33,8 +33,6 @@ router.get(
         { expiresIn: "7d" },
       );
 
-      console.log(token)
-
       // 🔴 se já for premium, não manda pro checkout
       const hasActiveAccess =
         user.subscription_status === "active" ||
@@ -44,8 +42,7 @@ router.get(
 
       // 🔴 se já tem acesso, não manda pro Stripe
       if (hasActiveAccess) {
-        console.log(hasActiveAccess)
-        return res.redirect(`${process.env.FRONTEND_URL}?token=${token}`);
+        return res.redirect(`${process.env.FRONTEND_URL}/auth-success?token=${token}`);
       }
 
       // 💳 cria checkout
