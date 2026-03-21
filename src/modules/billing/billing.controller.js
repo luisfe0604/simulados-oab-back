@@ -39,7 +39,7 @@ async function stripeWebhook(req, res) {
 
 async function cancel(req, res) {
   try {
-    const result = await service.cancelSubscription(req.user.id);
+    const result = await service.cancelSubscription(req.userId);
     res.json(result);
   } catch (err) {
     if (err.message === "SUBSCRIPTION_NOT_FOUND") {
@@ -54,7 +54,7 @@ async function cancel(req, res) {
 async function reactivate(req, res) {
   try {
     const result = await service.reactivateSubscription(
-      req.user.id,
+      req.userId,
     );
     res.json(result);
   } catch (err) {
@@ -69,7 +69,7 @@ async function reactivate(req, res) {
 
 async function status(req, res) {
   try {
-    const data = await service.getSubscriptionStatus(req.user.id);
+    const data = await service.getSubscriptionStatus(req.userId);
     res.json(data);
   } catch (err) {
     if (err.message === "USER_NOT_FOUND") {
