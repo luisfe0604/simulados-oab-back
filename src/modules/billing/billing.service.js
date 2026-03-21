@@ -2,11 +2,14 @@ const stripe = require("../../config/stripe");
 const pool = require("../../database/connection");
 
 async function createCheckoutSession(user) {
-
   const session = await stripe.checkout.sessions.create({
     mode: "subscription",
 
     customer_email: user.email,
+
+    metadata: {
+      userId: user.id,
+    },
 
     line_items: [
       {
@@ -22,75 +25,72 @@ async function createCheckoutSession(user) {
     success_url: "https://simulados-oab-back.onrender.com/painel",
     cancel_url: "https://simulados-oab-back.onrender.com/assinar",
   });
-  console.log(session)
 
   return session;
-
 }
 
-async function handleWebhook(body, signature) {
-
-  const event = stripe.webhooks.constructEvent(
-    body,
-    signature,
-    process.env.STRIPE_WEBHOOK_SECRET
+async function cancelSubscription(userId) {
+  const result = await pool.query(
+    "SELECT gateway_subscription_id FROM users WHERE id = $1",
+    [userId],
   );
 
-  switch (event.type) {
+  const user = result.rows[0];
 
-    case "checkout.session.completed": {
-
-      const session = event.data.object;
-      const email = session.customer_email;
-
-      await pool.query(
-        `UPDATE public.users 
-         SET subscription_status = 'active',
-             plan = 'premium',
-             subscription_started_at = NOW()
-         WHERE email = $1`,
-        [email]
-      );
-
-      break;
-    }
-
-    case "invoice.payment_failed": {
-
-      const invoice = event.data.object;
-      const email = invoice.customer_email;
-
-      await pool.query(
-        `UPDATE public.users 
-         SET subscription_status = 'past_due'
-         WHERE email = $1`,
-        [email]
-      );
-
-      break;
-    }
-
-    case "customer.subscription.deleted": {
-
-      const subscription = event.data.object;
-      const customerId = subscription.customer;
-
-      await pool.query(
-        `UPDATE public.users 
-         SET subscription_status = 'canceled',
-             subscription_cancelled_at = NOW()
-         WHERE gateway_customer_id = $1`,
-        [customerId]
-      );
-
-      break;
-    }
-
+  if (!user || !user.gateway_subscription_id) {
+    throw new Error("SUBSCRIPTION_NOT_FOUND");
   }
 
+  await stripe.subscriptions.update(user.gateway_subscription_id, {
+    cancel_at_period_end: true,
+  });
+
+  return { message: "Assinatura será cancelada ao final do período" };
+}
+
+async function reactivateSubscription(userId) {
+  const result = await pool.query(
+    "SELECT gateway_subscription_id FROM users WHERE id = $1",
+    [userId],
+  );
+
+  const user = result.rows[0];
+
+  if (!user || !user.gateway_subscription_id) {
+    throw new Error("SUBSCRIPTION_NOT_FOUND");
+  }
+
+  await stripe.subscriptions.update(user.gateway_subscription_id, {
+    cancel_at_period_end: false,
+  });
+
+  return { message: "Assinatura reativada com sucesso" };
+}
+
+async function getSubscriptionStatus(userId) {
+  const result = await pool.query(
+    `SELECT 
+       subscription_status,
+       cancel_at_period_end,
+       current_period_end,
+       plan
+     FROM users
+     WHERE id = $1`,
+    [userId],
+  );
+
+  const user = result.rows[0];
+
+  if (!user) {
+    throw new Error("USER_NOT_FOUND");
+  }
+
+  return user;
 }
 
 module.exports = {
   createCheckoutSession,
-  handleWebhook
+  cancelSubscription,
+  reactivateSubscription,
+  getSubscriptionStatus,
 };

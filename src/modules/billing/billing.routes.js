@@ -16,4 +16,22 @@ router.post(
   controller.stripeWebhook
 );
 
+router.get(
+  "/subscription",
+  authMiddleware,
+  controller.status
+);
+
+router.post(
+  "/subscription/cancel",
+  authMiddleware,
+  controller.cancel
+);
+
+router.post(
+  "/subscription/reactivate",
+  authMiddleware,
+  controller.reactivate
+);
+
 module.exports = router;

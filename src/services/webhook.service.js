@@ -13,19 +13,25 @@ async function handleWebhook(body, signature) {
       const session = event.data.object;
 
       const userId = session.metadata.userId;
-
       const trialEnd = new Date();
       trialEnd.setDate(trialEnd.getDate() + 7);
 
       await pool.query(
-        `UPDATE users 
-     SET subscription_status = 'trial',
-         plan = 'premium',
-         trial_end = $2,
-         subscription_started_at = NOW(),
-         gateway_customer_id = $3
+        `UPDATE public.users 
+     SET 
+       subscription_status = 'trial',
+       plan = 'premium',
+       trial_end = $2,
+       subscription_started_at = NOW(),
+       gateway_customer_id = $3,
+       gateway_subscription_id = $4
      WHERE id = $1`,
-        [userId, trialEnd, session.customer],
+        [
+          userId,
+          trialEnd,
+          session.customer,
+          session.subscription, // 🔥 ESSENCIAL
+        ],
       );
 
       break;
@@ -36,8 +42,9 @@ async function handleWebhook(body, signature) {
       const customerId = invoice.customer;
 
       await pool.query(
-        `UPDATE users 
-     SET subscription_status = 'active'
+        `UPDATE public.users 
+     SET 
+       subscription_status = 'active'
      WHERE gateway_customer_id = $1`,
         [customerId],
       );
@@ -45,15 +52,36 @@ async function handleWebhook(body, signature) {
       break;
     }
 
-    case "invoice.payment_failed": {
-      const invoice = event.data.object;
-      const email = invoice.customer_email;
+    case "customer.subscription.updated": {
+      const subscription = event.data.object;
 
       await pool.query(
-        `UPDATE users 
-         SET subscription_status = 'past_due'
-         WHERE email = $1`,
-        [email],
+        `UPDATE public.users 
+     SET 
+       subscription_status = $1,
+       cancel_at_period_end = $2,
+       current_period_end = to_timestamp($3)
+     WHERE gateway_subscription_id = $4`,
+        [
+          subscription.status,
+          subscription.cancel_at_period_end,
+          subscription.current_period_end,
+          subscription.id,
+        ],
+      );
+
+      break;
+    }
+
+    case "invoice.payment_failed": {
+      const invoice = event.data.object;
+      const customerId = invoice.customer;
+
+      await pool.query(
+        `UPDATE public.users 
+     SET subscription_status = 'past_due'
+     WHERE gateway_customer_id = $1`,
+        [customerId],
       );
 
       break;
@@ -63,9 +91,11 @@ async function handleWebhook(body, signature) {
       const subscription = event.data.object;
 
       await pool.query(
-        `UPDATE users 
-     SET subscription_status = 'cancelled'
-     WHERE gateway_subscription_id = $1`,
+        `UPDATE public.users 
+          SET 
+            subscription_status = 'canceled',
+            cancel_at_period_end = false
+          WHERE gateway_subscription_id = $1`,
         [subscription.id],
       );
 

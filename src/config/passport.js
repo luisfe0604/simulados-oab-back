@@ -18,7 +18,7 @@ passport.use(
         let user = await usersService.findByEmail(email);
 
         if (!user) {
-          user = await usersService.create({
+          user = await usersService.findOrCreate({
             name,
             email,
             password: null

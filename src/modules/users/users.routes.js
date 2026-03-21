@@ -37,49 +37,7 @@ router.get(
 router.get(
   "/auth/google/callback",
   passport.authenticate("google", { session: false }),
-  async (req, res) => {
-    try {
-      const user = req.user;
-
-      const token = jwt.sign(
-        { id: user.id, email: user.email },
-        process.env.JWT_SECRET,
-        { expiresIn: "7d" },
-      );
-
-      if (hasAccess(user)) {
-        return res.redirect(
-          `${process.env.FRONTEND_URL}/auth-success?token=${token}`,
-        );
-      }
-      const session = await stripe.checkout.sessions.create({
-        mode: "subscription",
-
-        ...(user.gateway_customer_id
-          ? { customer: user.gateway_customer_id }
-          : { customer_email: user.email }),
-
-        line_items: [
-          {
-            price: process.env.STRIPE_PRICE_ID,
-            quantity: 1,
-          },
-        ],
-
-        metadata: {
-          userId: user.id,
-        },
-
-        success_url: `${process.env.FRONTEND_URL}/sucesso?token=${token}`,
-        cancel_url: `${process.env.FRONTEND_URL}/cancelado`,
-      });
-
-      return res.redirect(session.url);
-    } catch (err) {
-      console.error(err);
-      return res.redirect(`${process.env.FRONTEND_URL}/login`);
-    }
-  },
+  controller.googleCallback,
 );
 
 module.exports = router;

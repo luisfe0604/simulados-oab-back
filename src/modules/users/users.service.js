@@ -20,8 +20,8 @@ async function register({ name, email, password }) {
 
   const result = await pool.query(
     `INSERT INTO public.users 
-    (name, email, password_hash, plan, subscription_status, trial_end)
-    VALUES ($1, $2, $3, 'free', 'inactive', NOW() + INTERVAL '7 days')
+    (name, email, password_hash, plan, subscription_status)
+    VALUES ($1, $2, $3, 'free', 'inactive')
     RETURNING id, name, email`,
     [name, email, hashedPassword]
   );
@@ -29,19 +29,22 @@ async function register({ name, email, password }) {
   return result.rows[0];
 }
 
-async function create({ name, email, password }) {
-  let passwordHash = null;
+async function findOrCreate({ name, email }) {
+  const existing = await pool.query(
+    "SELECT * FROM public.users WHERE email = $1",
+    [email]
+  );
 
-  if (password) {
-    passwordHash = await bcrypt.hash(password, 10);
+  if (existing.rows.length > 0) {
+    return existing.rows[0];
   }
 
   const result = await pool.query(
     `INSERT INTO public.users
-      (name, email, password_hash, plan, subscription_status, trial_end, created_at)
-     VALUES ($1, $2, $3, 'free', 'inactive', NULL, NOW())
+      (name, email, plan, subscription_status, created_at)
+     VALUES ($1, $2, 'free', 'inactive', NOW())
      RETURNING *`,
-    [name, email, passwordHash]
+    [name, email]
   );
 
   return result.rows[0];
@@ -89,4 +92,22 @@ async function findById(id) {
   return result.rows[0];
 }
 
-module.exports = { register, create, login, findByEmail, findById };
+function generateAuthResponse(user) {
+  const token = jwt.sign(
+    { id: user.id, email: user.email },
+    process.env.JWT_SECRET,
+    { expiresIn: "7d" }
+  );
+
+  return {
+    token,
+    hasAccess: hasAccess(user),
+  };
+}
+
+function hasAccess(user) {
+  const allowed = ["active", "trialing"];
+  return allowed.includes(user.subscription_status);
+}
+
+module.exports = { register, findOrCreate, login, findByEmail, findById, generateAuthResponse };
