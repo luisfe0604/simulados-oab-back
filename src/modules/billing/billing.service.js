@@ -72,7 +72,7 @@ async function getSubscriptionStatus(userId) {
     `SELECT 
        subscription_status,
        cancel_at_period_end,
-       current_period_end,
+       subscription_cancelled_at,
        plan
      FROM users
      WHERE id = $1`,

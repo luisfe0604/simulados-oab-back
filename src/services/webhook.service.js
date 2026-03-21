@@ -60,12 +60,12 @@ async function handleWebhook(body, signature) {
      SET 
        subscription_status = $1,
        cancel_at_period_end = $2,
-       current_period_end = to_timestamp($3)
+       subscription_cancelled_at = to_timestamp($3)
      WHERE gateway_subscription_id = $4`,
         [
           subscription.status,
           subscription.cancel_at_period_end,
-          subscription.current_period_end,
+          subscription.subscription_cancelled_at,
           subscription.id,
         ],
       );
