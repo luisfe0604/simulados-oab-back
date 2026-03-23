@@ -9,14 +9,18 @@ async function requireActiveSubscription(req, res, next) {
     }
 
     const result = await pool.query(
-      "SELECT subscription_status FROM public.users WHERE id = $1",
-      [userId]
+      "SELECT subscription_status, is_admin FROM public.users WHERE id = $1",
+      [userId],
     );
 
     const user = result.rows[0];
 
     if (!user) {
       return res.status(401).json({ error: "Usuário não encontrado" });
+    }
+
+    if (user.is_admin) {
+      return next();
     }
 
     const allowed = ["active", "trialing"];
