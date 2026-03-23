@@ -3,6 +3,7 @@ const pool = require("../database/connection");
 async function requireActiveSubscription(req, res, next) {
   try {
     const userId = req.user?.userId;
+    console.log(req.user)
 
     if (!userId) {
       return res.status(401).json({ error: "Não autenticado" });
