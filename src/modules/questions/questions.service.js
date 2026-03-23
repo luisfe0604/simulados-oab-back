@@ -19,7 +19,6 @@ async function create(data) {
       subjects = []
     } = data;
 
-    // Inserir questão
     const questionResult = await client.query(
       `
       INSERT INTO public.questions
@@ -42,7 +41,6 @@ async function create(data) {
 
     const question = questionResult.rows[0];
 
-    // Inserir assuntos (se existirem)
     for (let subjectId of subjects) {
       await client.query(
         `

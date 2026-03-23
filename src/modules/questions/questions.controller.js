@@ -15,7 +15,6 @@ async function create(req, res) {
       subjects
     } = req.body;
 
-    // Validação básica (MVP)
     if (!statement || !option_a || !option_b || !option_c || !correct_option) {
       return res.status(400).json({ error: "Campos obrigatórios faltando" });
     }

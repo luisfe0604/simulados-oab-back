@@ -6,7 +6,6 @@ async function finishSimulado({ userId, answers, duration_seconds }) {
   try {
     await client.query("BEGIN");
 
-    // Buscar respostas corretas das questões enviadas
     const questionIds = answers.map((a) => a.question_id);
 
     const questionsResult = await client.query(
@@ -22,13 +21,11 @@ async function finishSimulado({ userId, answers, duration_seconds }) {
 
     let correctAnswers = 0;
 
-    // Criar mapa para facilitar busca
     const correctMap = {};
     questions.forEach((q) => {
       correctMap[q.id] = q.correct_option;
     });
 
-    // Calcular acertos
     answers.forEach((answer) => {
       if (correctMap[answer.question_id] === answer.selected_option) {
         correctAnswers++;
@@ -38,7 +35,6 @@ async function finishSimulado({ userId, answers, duration_seconds }) {
     const totalQuestions = answers.length;
     const score = (correctAnswers / totalQuestions) * 100;
 
-    // Criar simulado
     const simulatedResult = await client.query(
       `
       INSERT INTO public.simulated_exams
@@ -51,7 +47,6 @@ async function finishSimulado({ userId, answers, duration_seconds }) {
 
     const simulatedExam = simulatedResult.rows[0];
 
-    // Inserir respostas individuais
     for (let answer of answers) {
       const isCorrect =
         correctMap[answer.question_id] === answer.selected_option;
@@ -134,7 +129,6 @@ async function listSimulados({ userId, page, limit }) {
 }
 
 async function getSimuladoById({ userId, simulatedId }) {
-  // Buscar simulado (garantindo que pertence ao usuário)
   const simuladoResult = await pool.query(
     `
     SELECT id, total_questions, correct_answers, score, created_at
@@ -150,7 +144,6 @@ async function getSimuladoById({ userId, simulatedId }) {
 
   const simulado = simuladoResult.rows[0];
 
-  // Buscar questões do simulado
   const questionsResult = await pool.query(
     `
     SELECT

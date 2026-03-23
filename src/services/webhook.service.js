@@ -30,7 +30,7 @@ async function handleWebhook(body, signature) {
           userId,
           trialEnd,
           session.customer,
-          session.subscription, // 🔥 ESSENCIAL
+          session.subscription,
         ],
       );
 
