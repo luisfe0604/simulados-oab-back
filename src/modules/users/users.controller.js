@@ -34,42 +34,17 @@ async function login(req, res) {
 }
 
 async function googleCallback(req, res) {
-  try {
-    const user = req.user;
+  const user = req.user;
 
-    const token = jwt.sign(
-      { userId: user.id },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
-    );
+  const token = jwt.sign(
+    { userId: user.id },
+    process.env.JWT_SECRET,
+    { expiresIn: "7d" }
+  );
 
-    const hasAccess = ["active", "trialing"].includes(
-      user.subscription_status
-    );
-
-    res.send(`
-      <script>
-        window.opener.postMessage(
-          { 
-            token: "${token}",
-            hasAccess: ${hasAccess}
-          }, 
-          "*"
-        );
-        window.close();
-      </script>
-    `);
-
-  } catch (err) {
-    console.error(err);
-
-    res.send(`
-      <script>
-        window.opener.postMessage({ error: true }, "*");
-        window.close();
-      </script>
-    `);
-  }
+  return res.redirect(
+    `${process.env.FRONTEND_URL}/auth-success?token=${token}`
+  );
 }
 
 async function me(req, res) {
