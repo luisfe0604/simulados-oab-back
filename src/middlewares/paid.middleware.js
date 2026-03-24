@@ -23,7 +23,7 @@ async function requireActiveSubscription(req, res, next) {
       return next();
     }
 
-    const allowed = ["active", "trialing"];
+    const allowed = ["active", "trialing", "trial"];
 
     if (!allowed.includes(user.subscription_status)) {
       return res.status(403).json({ error: "Plano inativo" });
