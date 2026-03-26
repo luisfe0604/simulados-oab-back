@@ -73,7 +73,8 @@ async function getSubscriptionStatus(userId) {
        subscription_status,
        cancel_at_period_end,
        subscription_cancelled_at,
-       plan
+       plan,
+       is_admin
      FROM users
      WHERE id = $1`,
     [userId],
