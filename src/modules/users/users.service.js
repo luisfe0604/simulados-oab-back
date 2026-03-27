@@ -9,7 +9,7 @@ async function register({ name, email, password }) {
 
   const existing = await pool.query(
     "SELECT id FROM public.users WHERE email = $1",
-    [email]
+    [email],
   );
 
   if (existing.rows.length > 0) {
@@ -23,7 +23,7 @@ async function register({ name, email, password }) {
     (name, email, password_hash, plan, subscription_status)
     VALUES ($1, $2, $3, 'free', 'inactive')
     RETURNING id, name, email`,
-    [name, email, hashedPassword]
+    [name, email, hashedPassword],
   );
 
   return result.rows[0];
@@ -32,7 +32,7 @@ async function register({ name, email, password }) {
 async function findOrCreate({ name, email }) {
   const existing = await pool.query(
     "SELECT * FROM public.users WHERE email = $1",
-    [email]
+    [email],
   );
 
   if (existing.rows.length > 0) {
@@ -44,16 +44,17 @@ async function findOrCreate({ name, email }) {
       (name, email, plan, subscription_status, created_at)
      VALUES ($1, $2, 'free', 'inactive', NOW())
      RETURNING *`,
-    [name, email]
+    [name, email],
   );
 
   return result.rows[0];
 }
 
 async function login({ email, password }) {
-  const result = await pool.query("SELECT * FROM public.users WHERE email = $1", [
-    email,
-  ]);
+  const result = await pool.query(
+    "SELECT * FROM public.users WHERE email = $1",
+    [email],
+  );
 
   const user = result.rows[0];
 
@@ -77,17 +78,16 @@ async function login({ email, password }) {
 async function findByEmail(email) {
   const result = await pool.query(
     "SELECT * FROM public.users WHERE email = $1",
-    [email]
+    [email],
   );
 
   return result.rows[0];
 }
 
 async function findById(id) {
-  const result = await pool.query(
-    "SELECT * FROM public.users WHERE id = $1",
-    [id]
-  );
+  const result = await pool.query("SELECT * FROM public.users WHERE id = $1", [
+    id,
+  ]);
 
   return result.rows[0];
 }
@@ -96,7 +96,7 @@ function generateAuthResponse(user) {
   const token = jwt.sign(
     { id: user.id, email: user.email },
     process.env.JWT_SECRET,
-    { expiresIn: "7d" }
+    { expiresIn: "7d" },
   );
 
   return {
@@ -117,8 +117,8 @@ async function getMetrics() {
 
   const statusRes = await pool.query(`
     SELECT subscription_status, COUNT(*) 
-    FROM public.subscriptions
-    GROUP BY subscription_status;
+      FROM users
+      GROUP BY subscription_status;
   `);
 
   const usersGrowthRes = await pool.query(`
@@ -134,7 +134,7 @@ async function getMetrics() {
     SELECT 
       TO_CHAR(DATE_TRUNC('month', created_at), 'YYYY-MM') AS month,
       COUNT(*) 
-    FROM public.subscriptions
+    FROM public.users
     WHERE subscription_status = 'active'
     GROUP BY month
     ORDER BY month;
@@ -143,7 +143,7 @@ async function getMetrics() {
   const statusMap = {
     active: 0,
     trialing: 0,
-    canceled: 0
+    canceled: 0,
   };
 
   statusRes.rows.forEach((row) => {
@@ -155,13 +155,21 @@ async function getMetrics() {
     status: statusMap,
     users_growth: usersGrowthRes.rows.map((r) => ({
       month: r.month,
-      count: Number(r.count)
+      count: Number(r.count),
     })),
     subscriptions_growth: subsGrowthRes.rows.map((r) => ({
       month: r.month,
-      count: Number(r.count)
-    }))
+      count: Number(r.count),
+    })),
   };
 }
 
-module.exports = { register, findOrCreate, login, findByEmail, findById, generateAuthResponse, getMetrics };
+module.exports = {
+  register,
+  findOrCreate,
+  login,
+  findByEmail,
+  findById,
+  generateAuthResponse,
+  getMetrics,
+};
