@@ -48,7 +48,6 @@ async function googleCallback(req, res) {
 }
 
 async function me(req, res) {
-
   try {
     const user = await usersService.findById(req.userId);
 
@@ -59,4 +58,14 @@ async function me(req, res) {
   }
 }
 
-module.exports = { register, login, googleCallback, me };
+async function getMetrics(req, res) {
+try {
+    const data = await usersService.getMetrics();
+    res.json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erro ao buscar métricas" });
+  }
+}
+
+module.exports = { register, login, googleCallback, me, getMetrics };

@@ -110,4 +110,58 @@ function hasAccess(user) {
   return allowed.includes(user.subscription_status);
 }
 
-module.exports = { register, findOrCreate, login, findByEmail, findById, generateAuthResponse };
+async function getMetrics() {
+  const totalUsersRes = await pool.query(`
+    SELECT COUNT(*) FROM public.users;
+  `);
+
+  const statusRes = await pool.query(`
+    SELECT subscription_status, COUNT(*) 
+    FROM public.subscriptions
+    GROUP BY subscription_status;
+  `);
+
+  const usersGrowthRes = await pool.query(`
+    SELECT 
+      TO_CHAR(DATE_TRUNC('month', created_at), 'YYYY-MM') AS month,
+      COUNT(*) 
+    FROM public.users
+    GROUP BY month
+    ORDER BY month;
+  `);
+
+  const subsGrowthRes = await pool.query(`
+    SELECT 
+      TO_CHAR(DATE_TRUNC('month', created_at), 'YYYY-MM') AS month,
+      COUNT(*) 
+    FROM public.subscriptions
+    WHERE subscription_status = 'active'
+    GROUP BY month
+    ORDER BY month;
+  `);
+
+  const statusMap = {
+    active: 0,
+    trialing: 0,
+    canceled: 0
+  };
+
+  statusRes.rows.forEach((row) => {
+    statusMap[row.subscription_status] = Number(row.count);
+  });
+
+  return {
+    total_users: Number(totalUsersRes.rows[0].count),
+    status: statusMap,
+    users_growth: usersGrowthRes.rows.map((r) => ({
+      month: r.month,
+      count: Number(r.count)
+    })),
+    subscriptions_growth: subsGrowthRes.rows.map((r) => ({
+      month: r.month,
+      count: Number(r.count)
+    }))
+  };
+}
+
+module.exports = { register, findOrCreate, login, findByEmail, findById, generateAuthResponse, getMetrics };
