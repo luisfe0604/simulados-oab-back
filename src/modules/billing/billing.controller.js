@@ -1,4 +1,6 @@
 const service = require("./billing.service");
+const stripe = require("../../config/stripe");
+const pool = require("../../database/connection");
 const userService = require("../users/users.service");
 
 const webhook = require("../../services/webhook.service");
