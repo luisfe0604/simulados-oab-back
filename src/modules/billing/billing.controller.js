@@ -83,74 +83,123 @@ async function status(req, res) {
   }
 }
 
-async function syncSubscription(req, res) {
+const stripe = require("../config/stripe");
+const pool = require("../database/connection");
+
+async function syncCustomerSubscription(req, res) {
   try {
-    const { subscription_id } = req.body;
+    const { customer_id } = req.body;
 
-    if (!subscription_id) {
+    if (!customer_id) {
       return res.status(400).json({
-        error: "subscription_id é obrigatório",
+        error: "customer_id é obrigatório",
       });
     }
 
-    const subscription = await stripe.subscriptions.retrieve(
-      subscription_id
-    );
+    // 🔥 1. Buscar todas subscriptions do cliente
+    const subs = await stripe.subscriptions.list({
+      customer: customer_id,
+      status: "all",
+      limit: 100,
+    });
 
-    if (!subscription) {
-      return res.status(404).json({
-        error: "Subscription não encontrada no Stripe",
+    if (!subs.data.length) {
+      // sem subscription → usuário não tem plano
+      await pool.query(
+        `UPDATE public.users
+         SET 
+           subscription_status = 'canceled',
+           gateway_subscription_id = NULL
+         WHERE gateway_customer_id = $1`,
+        [customer_id]
+      );
+
+      return res.json({
+        success: true,
+        message: "Cliente sem subscriptions",
       });
     }
 
-    const status = subscription.status;
-    const cancelAtPeriodEnd = subscription.cancel_at_period_end;
+    // 🔥 2. Ordenar da mais recente
+    const sorted = subs.data.sort((a, b) => b.created - a.created);
 
-    const canceledAt = subscription.canceled_at
-      ? new Date(subscription.canceled_at * 1000)
+    // 🔥 3. Escolher a melhor subscription
+    const priorityOrder = ["active", "trialing", "past_due", "incomplete"];
+
+    let selectedSub = null;
+
+    for (const status of priorityOrder) {
+      selectedSub = sorted.find((s) => s.status === status);
+      if (selectedSub) break;
+    }
+
+    // fallback
+    if (!selectedSub) {
+      selectedSub = sorted[0];
+    }
+
+    // 🔥 4. Tratar status problemático
+    let finalStatus = selectedSub.status;
+
+    if (finalStatus === "incomplete_expired") {
+      finalStatus = "canceled";
+    }
+
+    const cancelAtPeriodEnd = selectedSub.cancel_at_period_end;
+
+    const canceledAt = selectedSub.canceled_at
+      ? new Date(selectedSub.canceled_at * 1000)
       : null;
 
-    const trialEnd = subscription.trial_end
-      ? new Date(subscription.trial_end * 1000)
+    const trialEnd = selectedSub.trial_end
+      ? new Date(selectedSub.trial_end * 1000)
       : null;
 
-    const customerId = subscription.customer;
-
+    // 🔥 5. Atualizar banco
     const result = await pool.query(
       `UPDATE public.users
        SET 
          subscription_status = $1,
-         cancel_at_period_end = $2,
-         subscription_cancelled_at = $3,
-         trial_end = $4
-       WHERE gateway_subscription_id = $5
+         gateway_subscription_id = $2,
+         cancel_at_period_end = $3,
+         subscription_cancelled_at = $4,
+         trial_end = $5
+       WHERE gateway_customer_id = $6
        RETURNING id`,
       [
-        status,
+        finalStatus,
+        selectedSub.id,
         cancelAtPeriodEnd,
         canceledAt,
         trialEnd,
-        subscription_id,
+        customer_id,
       ]
     );
 
     if (result.rowCount === 0) {
       return res.status(404).json({
-        error: "Usuário não encontrado com esse subscription_id",
+        error: "Usuário não encontrado com esse customer_id",
       });
     }
 
+    // 🔥 DEBUG útil
+    console.log("SYNC CUSTOMER:", {
+      customer_id,
+      selected_subscription: selectedSub.id,
+      status: finalStatus,
+    });
+
     return res.json({
       success: true,
-      message: "Subscription sincronizada com sucesso",
+      message: "Customer sincronizado com sucesso",
       data: {
-        status,
-        trialEnd,
-        cancelAtPeriodEnd,
+        subscription_id: selectedSub.id,
+        status: finalStatus,
+        trial_end: trialEnd,
       },
     });
   } catch (err) {
-    console.error("Erro ao sincronizar:", err);
+    console.error("Erro ao sincronizar customer:", err);
 
     return res.status(500).json({
       error: err.message,
@@ -164,5 +213,5 @@ module.exports = {
   cancel,
   reactivate,
   status,
-  syncSubscription
+  syncCustomerSubscription
 };
