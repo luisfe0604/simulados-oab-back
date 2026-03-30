@@ -83,9 +83,6 @@ async function status(req, res) {
   }
 }
 
-const stripe = require("../config/stripe");
-const pool = require("../database/connection");
-
 async function syncCustomerSubscription(req, res) {
   try {
     const { customer_id } = req.body;
