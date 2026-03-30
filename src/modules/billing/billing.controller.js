@@ -1,5 +1,5 @@
-const service = require("./billing.service");
 const stripe = require("../../config/stripe");
+const service = require("./billing.service");
 const pool = require("../../database/connection");
 const userService = require("../users/users.service");
 
