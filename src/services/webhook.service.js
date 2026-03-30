@@ -71,7 +71,7 @@ async function handleWebhook(body, signature) {
         [
           subscription.status,
           subscription.cancel_at_period_end,
-          subscription.subscription_cancelled_at,
+          subscription.cancelled_at,
           subscription.id,
         ],
       );

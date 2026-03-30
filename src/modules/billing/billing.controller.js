@@ -81,10 +81,86 @@ async function status(req, res) {
   }
 }
 
+async function syncSubscription(req, res) {
+  try {
+    const { subscription_id } = req.body;
+
+    if (!subscription_id) {
+      return res.status(400).json({
+        error: "subscription_id é obrigatório",
+      });
+    }
+
+    const subscription = await stripe.subscriptions.retrieve(
+      subscription_id
+    );
+
+    if (!subscription) {
+      return res.status(404).json({
+        error: "Subscription não encontrada no Stripe",
+      });
+    }
+
+    const status = subscription.status;
+    const cancelAtPeriodEnd = subscription.cancel_at_period_end;
+
+    const canceledAt = subscription.canceled_at
+      ? new Date(subscription.canceled_at * 1000)
+      : null;
+
+    const trialEnd = subscription.trial_end
+      ? new Date(subscription.trial_end * 1000)
+      : null;
+
+    const customerId = subscription.customer;
+
+    const result = await pool.query(
+      `UPDATE public.users
+       SET 
+         subscription_status = $1,
+         cancel_at_period_end = $2,
+         subscription_cancelled_at = $3,
+         trial_end = $4
+       WHERE gateway_subscription_id = $5
+       RETURNING id`,
+      [
+        status,
+        cancelAtPeriodEnd,
+        canceledAt,
+        trialEnd,
+        subscription_id,
+      ]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({
+        error: "Usuário não encontrado com esse subscription_id",
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: "Subscription sincronizada com sucesso",
+      data: {
+        status,
+        trialEnd,
+        cancelAtPeriodEnd,
+      },
+    });
+  } catch (err) {
+    console.error("Erro ao sincronizar:", err);
+
+    return res.status(500).json({
+      error: err.message,
+    });
+  }
+}
+
 module.exports = {
   createCheckoutSession,
   stripeWebhook,
   cancel,
   reactivate,
   status,
+  syncSubscription
 };
