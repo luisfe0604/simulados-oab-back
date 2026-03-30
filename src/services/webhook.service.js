@@ -12,7 +12,12 @@ async function handleWebhook(body, signature) {
     case "checkout.session.completed": {
       const session = event.data.object;
 
-      const userId = session.metadata.userId;
+      const userId = session.metadata?.userId;
+
+      if (!session.subscription) {
+        console.log("⚠️ Sessão sem subscription");
+        break;
+      }
 
       const subscription = await stripe.subscriptions.retrieve(
         session.subscription,
@@ -27,22 +32,24 @@ async function handleWebhook(body, signature) {
      SET 
        subscription_status = $2,
        plan = 'premium',
-       trial_end = CASE 
-         WHEN $3 IS NOT NULL THEN $3
-         ELSE NULL
-       END,
+       trial_end = $3,
        subscription_started_at = NOW(),
        gateway_customer_id = $4,
        gateway_subscription_id = $5
      WHERE id = $1`,
         [
           userId,
-          subscription.status,
+          subscription.status, // ok usar aqui, mas não confiar 100%
           trialEnd,
           session.customer,
           session.subscription,
         ],
       );
+
+      console.log("✅ checkout.session.completed processado", {
+        userId,
+        status: subscription.status,
+      });
 
       break;
     }
