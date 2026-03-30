@@ -34,6 +34,6 @@ router.post(
   controller.reactivate
 );
 
-router.post("/sync-subscription", syncSubscription);
+router.post("/sync-subscription", controller.syncSubscription);
 
 module.exports = router;
