@@ -39,7 +39,7 @@ async function handleWebhook(body, signature) {
      WHERE id = $1`,
         [
           userId,
-          subscription.status, // ok usar aqui, mas não confiar 100%
+          subscription.status,
           trialEnd,
           session.customer,
           session.subscription,
@@ -81,7 +81,7 @@ async function handleWebhook(body, signature) {
      SET 
        subscription_status = $1,
        cancel_at_period_end = $2,
-       subscription_cancelled_at = $3,
+       subscription_cancelled_at = $3
      WHERE gateway_subscription_id = $4`,
         [
           subscription.status,
