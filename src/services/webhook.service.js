@@ -18,13 +18,17 @@ async function handleWebhook(body, signature) {
         session.subscription,
       );
 
+      const trialEnd = subscription.trial_end
+        ? new Date(subscription.trial_end * 1000)
+        : null;
+
       await pool.query(
         `UPDATE public.users 
      SET 
        subscription_status = $2,
        plan = 'premium',
        trial_end = CASE 
-         WHEN $3 IS NOT NULL THEN to_timestamp($3)
+         WHEN $3 IS NOT NULL THEN $3
          ELSE NULL
        END,
        subscription_started_at = NOW(),
@@ -34,7 +38,7 @@ async function handleWebhook(body, signature) {
         [
           userId,
           subscription.status,
-          subscription.trial_end,
+          trialEnd,
           session.customer,
           session.subscription,
         ],
@@ -61,17 +65,21 @@ async function handleWebhook(body, signature) {
     case "customer.subscription.updated": {
       const subscription = event.data.object;
 
+      const canceledAt = subscription.canceled_at
+        ? new Date(subscription.canceled_at * 1000)
+        : null;
+
       await pool.query(
         `UPDATE public.users 
      SET 
        subscription_status = $1,
        cancel_at_period_end = $2,
-       subscription_cancelled_at = to_timestamp($3)
+       subscription_cancelled_at = $3,
      WHERE gateway_subscription_id = $4`,
         [
           subscription.status,
           subscription.cancel_at_period_end,
-          subscription.cancelled_at,
+          canceledAt,
           subscription.id,
         ],
       );
