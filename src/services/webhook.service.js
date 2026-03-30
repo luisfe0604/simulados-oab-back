@@ -13,22 +13,28 @@ async function handleWebhook(body, signature) {
       const session = event.data.object;
 
       const userId = session.metadata.userId;
-      const trialEnd = new Date();
-      trialEnd.setDate(trialEnd.getDate() + 7);
+
+      const subscription = await stripe.subscriptions.retrieve(
+        session.subscription,
+      );
 
       await pool.query(
         `UPDATE public.users 
      SET 
-       subscription_status = 'trial',
+       subscription_status = $2,
        plan = 'premium',
-       trial_end = $2,
+       trial_end = CASE 
+         WHEN $3 IS NOT NULL THEN to_timestamp($3)
+         ELSE NULL
+       END,
        subscription_started_at = NOW(),
-       gateway_customer_id = $3,
-       gateway_subscription_id = $4
+       gateway_customer_id = $4,
+       gateway_subscription_id = $5
      WHERE id = $1`,
         [
           userId,
-          trialEnd,
+          subscription.status,
+          subscription.trial_end,
           session.customer,
           session.subscription,
         ],
@@ -65,7 +71,7 @@ async function handleWebhook(body, signature) {
         [
           subscription.status,
           subscription.cancel_at_period_end,
-          subscription.subscription_cancelled_at,
+          subscription.cancelled_at,
           subscription.id,
         ],
       );
