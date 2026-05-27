@@ -8,7 +8,7 @@ async function register({ name, email, password }) {
   }
 
   const existing = await pool.query(
-    "SELECT id FROM public.users WHERE email = $1",
+    "SELECT id FROM users WHERE email = $1",
     [email],
   );
 
@@ -19,7 +19,7 @@ async function register({ name, email, password }) {
   const hashedPassword = await bcrypt.hash(password, 10);
 
   const result = await pool.query(
-    `INSERT INTO public.users 
+    `INSERT INTO users 
     (name, email, password_hash, plan, subscription_status)
     VALUES ($1, $2, $3, 'free', 'inactive')
     RETURNING id, name, email`,
@@ -31,7 +31,7 @@ async function register({ name, email, password }) {
 
 async function findOrCreate({ name, email }) {
   const existing = await pool.query(
-    "SELECT * FROM public.users WHERE email = $1",
+    "SELECT * FROM users WHERE email = $1",
     [email],
   );
 
@@ -40,7 +40,7 @@ async function findOrCreate({ name, email }) {
   }
 
   const result = await pool.query(
-    `INSERT INTO public.users
+    `INSERT INTO users
       (name, email, plan, subscription_status, created_at)
      VALUES ($1, $2, 'free', 'inactive', NOW())
      RETURNING *`,
@@ -52,7 +52,7 @@ async function findOrCreate({ name, email }) {
 
 async function login({ email, password }) {
   const result = await pool.query(
-    "SELECT * FROM public.users WHERE email = $1",
+    "SELECT * FROM users WHERE email = $1",
     [email],
   );
 
@@ -69,7 +69,7 @@ async function login({ email, password }) {
   }
 
   const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
-    expiresIn: "1d",
+    expiresIn: "7d",
   });
 
   return { token };
@@ -77,7 +77,7 @@ async function login({ email, password }) {
 
 async function findByEmail(email) {
   const result = await pool.query(
-    "SELECT * FROM public.users WHERE email = $1",
+    "SELECT * FROM users WHERE email = $1",
     [email],
   );
 
@@ -85,7 +85,7 @@ async function findByEmail(email) {
 }
 
 async function findById(id) {
-  const result = await pool.query("SELECT * FROM public.users WHERE id = $1", [
+  const result = await pool.query("SELECT * FROM users WHERE id = $1", [
     id,
   ]);
 
@@ -112,7 +112,7 @@ function hasAccess(user) {
 
 async function getMetrics() {
   const totalUsersRes = await pool.query(`
-    SELECT COUNT(*) FROM public.users;
+    SELECT COUNT(*) FROM users;
   `);
 
   const statusRes = await pool.query(`
@@ -125,7 +125,7 @@ async function getMetrics() {
     SELECT 
       TO_CHAR(DATE_TRUNC('month', created_at), 'YYYY-MM') AS month,
       COUNT(*) 
-    FROM public.users
+    FROM users
     GROUP BY month
     ORDER BY month;
   `);
@@ -134,7 +134,7 @@ async function getMetrics() {
     SELECT 
       TO_CHAR(DATE_TRUNC('month', created_at), 'YYYY-MM') AS month,
       COUNT(*) 
-    FROM public.users
+    FROM users
     WHERE subscription_status = 'active'
     GROUP BY month
     ORDER BY month;

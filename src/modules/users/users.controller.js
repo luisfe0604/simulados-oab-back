@@ -42,8 +42,17 @@ async function googleCallback(req, res) {
     { expiresIn: "7d" }
   );
 
+  console.log(req.query.system)
+
+  const system = req.query.system;
+
+  const frontendUrl =
+    system === "enem"
+      ? process.env.FRONTEND_ENEM_URL
+      : process.env.FRONTEND_URL;
+
   return res.redirect(
-    `${process.env.FRONTEND_URL}/auth-success?token=${token}`
+    `${frontendUrl}/auth-success?token=${token}`
   );
 }
 
