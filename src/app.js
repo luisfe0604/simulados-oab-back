@@ -5,7 +5,7 @@ const billing = require("./modules/billing/billing.routes");
 const billingController = require("./modules/billing/billing.controller");
 const passport = require("./config/passport");
 const http = require('http'); //api teste
-const { initWebSocket } = require('./websocket/websocket');//api teste
+const { initWebSocket } = require('./modules/useTestsGenerics/websocket/websocket');//api teste
 
 const app = express();
 
