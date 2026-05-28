@@ -6,7 +6,7 @@ const {
 
 async function listarMesas() {
   const result = await db.query(
-    'SELECT * FROM mesas_festa ORDER BY id'
+    'SELECT * FROM public.mesas_festa ORDER BY id'
   );
 
   return result.rows;
@@ -19,7 +19,7 @@ async function reservarMesa({
 }) {
   const result = await db.query(
     `
-      UPDATE mesas_festa
+      UPDATE public.mesas_festa
       SET
         nome = $1,
         cadeiras = $2,
@@ -45,7 +45,7 @@ async function atualizarMesa({
 }) {
   const result = await db.query(
     `
-      UPDATE mesas_festa
+      UPDATE public.mesas_festa
       SET
         nome = $1,
         cadeiras = $2,
@@ -71,7 +71,7 @@ async function limparMesa({
 }) {
   const result = await db.query(
     `
-      UPDATE mesas_festa
+      UPDATE public.mesas_festa
       SET
         nome = $1,
         cadeiras = $2,
