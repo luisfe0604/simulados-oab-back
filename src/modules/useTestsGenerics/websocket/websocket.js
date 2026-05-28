@@ -19,7 +19,7 @@ function initWebSocket(server) {
 
 async function broadcastMesasAtualizadas() {
   try {
-    const result = await db.query('SELECT * FROM mesas ORDER BY id');
+    const result = await db.query('SELECT * FROM public.mesas_festa ORDER BY id');
 
     const payload = JSON.stringify({
       type: 'mesas:update',
