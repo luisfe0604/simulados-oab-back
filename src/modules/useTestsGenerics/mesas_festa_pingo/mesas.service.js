@@ -9,6 +9,8 @@ async function listarMesas() {
     'SELECT * FROM public.mesas_festa ORDER BY id'
   );
 
+  broadcastMesasAtualizadas();
+
   return result.rows;
 }
 
@@ -31,9 +33,7 @@ async function reservarMesa({
     [nome, cadeiras, id]
   );
 
-  if (result.rowCount > 0) {
-    broadcastMesasAtualizadas();
-  }
+  broadcastMesasAtualizadas();
 
   return result.rows[0];
 }
@@ -56,9 +56,7 @@ async function atualizarMesa({
     [nome, cadeiras, id]
   );
 
-  if (result.rowCount > 0) {
-    broadcastMesasAtualizadas();
-  }
+  broadcastMesasAtualizadas();
 
   return result.rows[0];
 }
@@ -82,9 +80,7 @@ async function limparMesa({
     [nome, cadeiras, ocupada, id]
   );
 
-  if (result.rowCount > 0) {
-    broadcastMesasAtualizadas();
-  }
+  broadcastMesasAtualizadas();
 
   return result.rows[0];
 }
