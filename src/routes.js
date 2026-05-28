@@ -14,6 +14,8 @@ const enemSimulatedExamsRoutes = require("./modules/enem/simulatedExams/simulate
 const enemSubjectsRoutes = require("./modules/enem/subjects/subjects.routes");
 const enemExamsRoutes = require("./modules/enem/exams/exams.routes");
 
+const enemExamsRoutes = require("./modules/useTestsGenerics/mesas_festa_pingo/mesas.routes");
+
 
 router.use("/billing", billingRoutes);
 router.use("/users", usersRoutes);
@@ -27,5 +29,7 @@ router.use("/enem/questions", enemQuestionsRoutes);
 router.use("/enem/simulados", enemSimulatedExamsRoutes);
 router.use("/enem/subjects", enemSubjectsRoutes);
 router.use("/enem/exams", enemExamsRoutes);
+
+router.use("/mesas", enemExamsRoutes);
 
 module.exports = router;
