@@ -42,6 +42,7 @@ async function googleCallback(req, res) {
     { expiresIn: "7d" }
   );
 
+  console.log("problema aqui")
   console.log(req.query.system)
 
   const system = req.query.system;
