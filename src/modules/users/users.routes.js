@@ -14,7 +14,7 @@ router.get("/metrics", authMiddleware, adminMiddleware, controller.getMetrics);
 router.get("/auth/google", (req, res, next) => {
   passport.authenticate("google", {
     scope: ["profile", "email"],
-    state: req.query.state || "oab",
+    state: req.query.system || "oab",
   })(req, res, next);
 });
 
