@@ -158,7 +158,7 @@ async function getSimuladoById({ userId, simulatedId }) {
       seq.selected_option,
       seq.is_correct
     FROM public.simulated_exam_questions_enem seq
-    JOIN public.questions q ON q.id = seq.question_id
+    JOIN public.questions_enem q ON q.id = seq.question_id
     WHERE seq.simulated_exam_id = $1
     `,
     [simulatedId],
