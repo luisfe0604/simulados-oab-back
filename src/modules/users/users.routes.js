@@ -15,6 +15,7 @@ router.get(
   "/auth/google",
   passport.authenticate("google", {
     scope: ["profile", "email"],
+    state: req.query.system || "oab",
   }),
 );
 

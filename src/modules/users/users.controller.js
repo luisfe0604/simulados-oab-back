@@ -42,15 +42,12 @@ async function googleCallback(req, res) {
     { expiresIn: "7d" }
   );
 
-  console.log("problema aqui")
-  console.log(req.query.system)
-
-  const system = req.query.system;
+  const system = req.query.state;
 
   const frontendUrl =
     system === "enem"
       ? process.env.FRONTEND_ENEM_URL
-      : process.env.FRONTEND_ENEM_URL;
+      : process.env.FRONTEND_URL;
 
   return res.redirect(
     `${frontendUrl}/auth-success?token=${token}`
