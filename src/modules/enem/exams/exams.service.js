@@ -4,7 +4,7 @@ async function findAll() {
   const query = `
     SELECT 
       e.*
-    FROM exams_enem e;
+    FROM public.exams_enem e;
   `;
 
   const result = await pool.query(query);

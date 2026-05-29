@@ -6,8 +6,8 @@ async function getSubjects() {
       s.id,
       s.name,
       COUNT(qs.question_id) AS total_questions
-    FROM subjects_enem s
-    LEFT JOIN question_subjects_enem qs 
+    FROM public.subjects_enem s
+    LEFT JOIN public.question_subjects_enem qs 
       ON qs.subject_id = s.id
     GROUP BY s.id
     ORDER BY s.name ASC
