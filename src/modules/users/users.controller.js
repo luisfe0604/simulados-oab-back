@@ -50,7 +50,7 @@ async function googleCallback(req, res) {
   const frontendUrl =
     system === "enem"
       ? process.env.FRONTEND_ENEM_URL
-      : process.env.FRONTEND_URL;
+      : process.env.FRONTEND_ENEM_URL;
 
   return res.redirect(
     `${frontendUrl}/auth-success?token=${token}`
