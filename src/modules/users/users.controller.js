@@ -42,8 +42,12 @@ async function googleCallback(req, res) {
     { expiresIn: "7d" }
   );
 
+  console.log(req.query.system)
+
+  const system = req.query.system;
+
   const frontendUrl =
-    req.query.system
+    system === "enem"
       ? process.env.FRONTEND_ENEM_URL
       : process.env.FRONTEND_URL;
 
