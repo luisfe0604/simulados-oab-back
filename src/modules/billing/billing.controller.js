@@ -11,7 +11,7 @@ async function createCheckoutSession(req, res) {
 
     const user = await userService.findById(userId);
 
-    const session = await service.createCheckoutSession(user);
+    const session = await service.createCheckoutSession(user, req.body.system);
 
     res.json({
       url: session.url,
@@ -55,9 +55,7 @@ async function cancel(req, res) {
 
 async function reactivate(req, res) {
   try {
-    const result = await service.reactivateSubscription(
-      req.userId,
-    );
+    const result = await service.reactivateSubscription(req.userId);
     res.json(result);
   } catch (err) {
     if (err.message === "SUBSCRIPTION_NOT_FOUND") {
@@ -108,7 +106,7 @@ async function syncCustomerSubscription(req, res) {
            subscription_status = 'canceled',
            gateway_subscription_id = NULL
          WHERE gateway_customer_id = $1`,
-        [customer_id]
+        [customer_id],
       );
 
       return res.json({
@@ -170,7 +168,7 @@ async function syncCustomerSubscription(req, res) {
         canceledAt,
         trialEnd,
         customer_id,
-      ]
+      ],
     );
 
     if (result.rowCount === 0) {
@@ -210,5 +208,5 @@ module.exports = {
   cancel,
   reactivate,
   status,
-  syncCustomerSubscription
+  syncCustomerSubscription,
 };

@@ -1,7 +1,12 @@
 const stripe = require("../../config/stripe");
 const pool = require("../../database/connection");
 
-async function createCheckoutSession(user) {
+async function createCheckoutSession(user, system = "oab") {
+  const frontendUrl =
+    system === "enem"
+      ? process.env.FRONTEND_ENEM_URL
+      : process.env.FRONTEND_URL;
+
   const session = await stripe.checkout.sessions.create({
     mode: "subscription",
 
@@ -22,8 +27,8 @@ async function createCheckoutSession(user) {
       trial_period_days: 7,
     },
 
-    success_url: `${process.env.FRONTEND_URL}/`,
-    cancel_url: `${process.env.FRONTEND_URL}/conta`,
+    success_url: `${frontendUrl}/`,
+    cancel_url: `${frontendUrl}/conta`,
   });
 
   return session;
