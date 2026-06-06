@@ -157,7 +157,7 @@ async function removeSubscription(req, res) {
 
 async function getUser(req, res) {
   try {
-    const user = await service.getUser(req.params.id);
+    const user = await usersService.getUser(req.params.id);
 
     if (!user) {
       return res.status(404).json({
