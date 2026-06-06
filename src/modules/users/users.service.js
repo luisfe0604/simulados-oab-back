@@ -295,10 +295,7 @@ async function getUser(userId) {
       plan,
       subscription_status,
       is_admin,
-      stripe_customer_id,
-      stripe_subscription_id,
-      created_at,
-      updated_at
+      created_at
     FROM public.users
     WHERE id = $1
     `,
