@@ -93,7 +93,7 @@ async function listUsers(req, res) {
 
 async function toggleAdmin(req, res) {
   try {
-    const userId = req.query.userId;
+    const userId = req.query.id;
 
     const data = await usersService.toggleAdmin({
       userId,
@@ -111,7 +111,7 @@ async function toggleAdmin(req, res) {
 
 async function grantPremium(req, res) {
   try {
-    const userId = req.query.userId;
+    const userId = req.query.id;
 
     const data = await usersService.grantPremium({
       userId,
