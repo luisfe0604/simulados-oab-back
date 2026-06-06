@@ -24,4 +24,41 @@ router.get(
   controller.googleCallback,
 );
 
+router.get("/list", authMiddleware, adminMiddleware, controller.listUsers);
+
+router.get(
+  "/:id",
+  authMiddleware,
+  adminMiddleware,
+  controller.getUser
+);
+
+router.patch(
+  "/:id/admin",
+  authMiddleware,
+  adminMiddleware,
+  controller.toggleAdmin,
+);
+
+router.patch(
+  "/:id/premium",
+  authMiddleware,
+  adminMiddleware,
+  controller.grantPremium,
+);
+
+router.patch(
+  "/:id/free",
+  authMiddleware,
+  adminMiddleware,
+  controller.revokePremium,
+);
+
+router.delete(
+  "/:id/subscription",
+  authMiddleware,
+  adminMiddleware,
+  controller.removeSubscription,
+);
+
 module.exports = router;

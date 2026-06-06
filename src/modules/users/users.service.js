@@ -164,6 +164,150 @@ async function getMetrics() {
   };
 }
 
+async function listUsers({ page, limit, search }) {
+  const offset = (page - 1) * limit;
+
+  const params = [];
+  let where = "";
+
+  if (search) {
+    params.push(`%${search}%`);
+
+    where = `
+      WHERE
+        name ILIKE $${params.length}
+        OR email ILIKE $${params.length}
+    `;
+  }
+
+  const countQuery = `
+    SELECT COUNT(*)
+    FROM public.users
+    ${where}
+  `;
+
+  const usersQuery = `
+    SELECT
+      id,
+      name,
+      email,
+      plan,
+      subscription_status,
+      is_admin,
+      created_at
+    FROM public.users
+    ${where}
+    ORDER BY created_at DESC
+    LIMIT ${limit}
+    OFFSET ${offset}
+  `;
+
+  const countResult = await pool.query(countQuery, params);
+
+  const usersResult = await pool.query(usersQuery, params);
+
+  return {
+    total: Number(countResult.rows[0].count),
+    page,
+    limit,
+    users: usersResult.rows,
+  };
+}
+
+async function toggleAdmin(userId) {
+  const { rows } = await pool.query(
+    `
+    UPDATE public.users
+    SET is_admin = NOT is_admin
+    WHERE id = $1
+    RETURNING *
+    `,
+    [userId],
+  );
+
+  return rows[0];
+}
+
+async function grantPremium(userId) {
+  const { rows } = await pool.query(
+    `
+    UPDATE public.users
+    SET
+      plan = 'premium',
+      subscription_status = 'active'
+    WHERE id = $1
+    RETURNING *
+    `,
+    [userId],
+  );
+
+  return rows[0];
+}
+
+async function revokePremium(userId) {
+  const { rows } = await pool.query(
+    `
+    UPDATE public.users
+    SET
+      plan = 'free',
+      subscription_status = 'inactive'
+    WHERE id = $1
+    RETURNING *
+    `,
+    [userId],
+  );
+
+  return rows[0];
+}
+
+async function removeSubscription(userId) {
+  const user = await userService.findById(userId);
+
+  if (user.stripe_subscription_id) {
+    await stripe.subscriptions.cancel(
+      user.stripe_subscription_id
+    );
+  }
+
+  const { rows } = await pool.query(
+    `
+    UPDATE public.users
+    SET
+      plan = 'free',
+      subscription_status = 'inactive',
+      stripe_subscription_id = NULL
+    WHERE id = $1
+    RETURNING *
+    `,
+    [userId]
+  );
+
+  return rows[0];
+}
+
+async function getUser(userId) {
+  const { rows } = await pool.query(
+    `
+    SELECT
+      id,
+      name,
+      email,
+      plan,
+      subscription_status,
+      is_admin,
+      stripe_customer_id,
+      stripe_subscription_id,
+      created_at,
+      updated_at
+    FROM public.users
+    WHERE id = $1
+    `,
+    [userId]
+  );
+
+  return rows[0] || null;
+}
+
 module.exports = {
   register,
   findOrCreate,
@@ -172,4 +316,10 @@ module.exports = {
   findById,
   generateAuthResponse,
   getMetrics,
+  listUsers,
+  toggleAdmin,
+  grantPremium,
+  revokePremium,
+  removeSubscription,
+  getUser,
 };
