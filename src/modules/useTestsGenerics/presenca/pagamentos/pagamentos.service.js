@@ -5,7 +5,7 @@ async function listar() {
     SELECT
       pg.id,
       pg.mes,
-      pg.pago,
+      COALESCE(pg.pago, false) AS pago,
 
       a.id AS aluno_id,
       a.nome,
@@ -38,7 +38,7 @@ async function listarPorMes(mes) {
     SELECT
       pg.id,
       pg.mes,
-      pg.pago,
+      COALESCE(pg.pago, false) AS pago,
 
       a.id AS aluno_id,
       a.nome,
