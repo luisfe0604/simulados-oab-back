@@ -10,6 +10,7 @@ async function listar() {
       a.id AS aluno_id,
       a.nome,
       a.turma,
+      a.inativo,
 
       pl.id AS plano_id,
       pl.nome AS plano,
@@ -17,15 +18,15 @@ async function listar() {
       pl.valor_quadra,
       (pl.valor_total - pl.valor_quadra) AS valor_liquido
 
-    FROM public.pagamentos pg
-
-    INNER JOIN public.alunos a
-      ON a.id = pg.aluno_id
+    FROM public.alunos a
 
     INNER JOIN public.planos pl
       ON pl.id = a.plano_id
 
-    ORDER BY pg.mes DESC, a.nome
+    LEFT JOIN public.pagamentos pg
+      ON pg.aluno_id = a.id
+
+    ORDER BY pg.mes DESC NULLS LAST, a.nome
   `);
 
   return rows;
@@ -50,15 +51,14 @@ async function listarPorMes(mes) {
       pl.valor_quadra,
       (pl.valor_total - pl.valor_quadra) AS valor_liquido
 
-    FROM public.pagamentos pg
-
-    INNER JOIN public.alunos a
-      ON a.id = pg.aluno_id
+    FROM public.alunos a
 
     INNER JOIN public.planos pl
       ON pl.id = a.plano_id
 
-    WHERE pg.mes = $1
+    LEFT JOIN public.pagamentos pg
+      ON pg.aluno_id = a.id
+      AND pg.mes = $1
 
     ORDER BY a.nome
     `,
