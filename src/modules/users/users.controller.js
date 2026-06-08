@@ -95,9 +95,7 @@ async function toggleAdmin(req, res) {
   try {
     const userId = req.params.id;
 
-    const data = await usersService.toggleAdmin({
-      userId,
-    });
+    const data = await usersService.toggleAdmin(userId);
 
     res.json(data);
   } catch (err) {
@@ -113,9 +111,7 @@ async function grantPremium(req, res) {
   try {
     const userId = req.params.id;
 
-    const data = await usersService.grantPremium({
-      userId,
-    });
+    const data = await usersService.grantPremium(userId);
 
     res.json(data);
   } catch (err) {
