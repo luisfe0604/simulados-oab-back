@@ -5,7 +5,7 @@ async function listar() {
     SELECT
       pg.id,
       pg.mes,
-      COALESCE(pg.pago, false) AS pago,
+      pg.pago,
 
       a.id AS aluno_id,
       a.nome,
@@ -38,7 +38,7 @@ async function listarPorMes(mes) {
     SELECT
       pg.id,
       pg.mes,
-      COALESCE(pg.pago, false) AS pago,
+      pg.pago,
 
       a.id AS aluno_id,
       a.nome,
@@ -51,14 +51,15 @@ async function listarPorMes(mes) {
       pl.valor_quadra,
       (pl.valor_total - pl.valor_quadra) AS valor_liquido
 
-    FROM public.alunos a
+    FROM public.pagamentos pg
+
+    INNER JOIN public.alunos a
+      ON a.id = pg.aluno_id
 
     INNER JOIN public.planos pl
       ON pl.id = a.plano_id
 
-    LEFT JOIN public.pagamentos pg
-      ON pg.aluno_id = a.id
-      AND pg.mes = $1
+    WHERE pg.mes = $1
 
     ORDER BY a.nome
     `,

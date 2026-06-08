@@ -22,17 +22,17 @@ async function listarPorData(data) {
   const { rows } = await db.query(
     `
     SELECT
+      p.id,
+      p.data,
+      p.presente,
       a.id AS aluno_id,
       a.nome,
       a.turma,
-      a.inativo,
-      p.id,
-      p.data,
-      COALESCE(p.presente, false) AS presente
-    FROM public.alunos a
-    LEFT JOIN public.presenca p
-      ON p.aluno_id = a.id
-      AND p.data = $1
+      a.inativo
+    FROM public.presenca p
+    INNER JOIN public.alunos a
+      ON a.id = p.aluno_id
+    WHERE p.data = $1
     ORDER BY a.nome
     `,
     [data],

@@ -14,7 +14,10 @@ exports.listar = async (req, res) => {
 
 exports.listarPorMes = async (req, res) => {
   const mesBanco = `${req.params.mes}-01`;
+
   try {
+    await service.fecharMes(mesBanco);
+
     const data = await service.listarPorMes(mesBanco);
 
     res.json(data);
