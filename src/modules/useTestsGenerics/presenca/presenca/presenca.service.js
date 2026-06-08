@@ -30,7 +30,7 @@ async function listarPorData(data) {
       a.turma,
       a.inativo
     FROM public.presenca p
-    INNER JOIN public.alunos a
+    LEFT JOIN public.alunos a
       ON a.id = p.aluno_id
     WHERE p.data = $1
     ORDER BY a.nome
