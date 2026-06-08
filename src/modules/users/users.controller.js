@@ -111,6 +111,7 @@ async function toggleAdmin(req, res) {
 
 async function grantPremium(req, res) {
   try {
+    console.log(req.query)
     const userId = req.query.id;
 
     const data = await usersService.grantPremium({
