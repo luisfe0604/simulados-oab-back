@@ -55,7 +55,8 @@ exports.registrar = async (req, res) => {
 
 exports.fecharMes = async (req, res) => {
   try {
-    const data = await service.fecharMes(req.body.mes);
+    const mesBanco = `${req.body.mes}-01`;
+    const data = await service.fecharMes(mesBanco);
 
     res.json(data);
   } catch (err) {
