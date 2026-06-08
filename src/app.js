@@ -5,6 +5,8 @@ const billing = require("./modules/billing/billing.routes");
 const billingController = require("./modules/billing/billing.controller");
 const passport = require("./config/passport");
 
+require("./modules/useTestsGenerics/presenca/cron-job"); // api teste
+
 const app = express();
 
 app.use(express.static('frontend'));//api teste
