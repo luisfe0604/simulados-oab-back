@@ -71,6 +71,7 @@ async function obterResumo(mes) {
     LEFT JOIN public.pagamentos p
       ON p.aluno_id = a.id
       AND p.mes = $1
+    WHERE inativo = false
     `,
     [mes],
   );
