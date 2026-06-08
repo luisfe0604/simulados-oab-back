@@ -9,15 +9,14 @@ async function obterResumo(mes) {
       ) AS alunos_ativos,
 
       COALESCE(
-        SUM(p.valor_cobrado),
+        SUM(pl.valor_total),
         0
       ) AS receita_prevista,
 
       COALESCE(
         SUM(
           CASE
-            WHEN p.pago = true
-            THEN p.valor_cobrado
+            WHEN p.pago = true THEN pl.valor_total
             ELSE 0
           END
         ),
@@ -27,8 +26,7 @@ async function obterResumo(mes) {
       COALESCE(
         SUM(
           CASE
-            WHEN p.pago = true
-            THEN p.valor_quadra
+            WHEN p.pago = true THEN pl.valor_quadra
             ELSE 0
           END
         ),
@@ -38,8 +36,7 @@ async function obterResumo(mes) {
       COALESCE(
         SUM(
           CASE
-            WHEN p.pago = true
-            THEN p.valor_cobrado - p.valor_quadra
+            WHEN p.pago = true THEN (pl.valor_total - pl.valor_quadra)
             ELSE 0
           END
         ),
@@ -49,8 +46,7 @@ async function obterResumo(mes) {
       COALESCE(
         SUM(
           CASE
-            WHEN p.pago = false
-            THEN p.valor_cobrado
+            WHEN COALESCE(p.pago, false) = false THEN pl.valor_total
             ELSE 0
           END
         ),
@@ -58,14 +54,18 @@ async function obterResumo(mes) {
       ) AS valor_a_receber,
 
       COUNT(*) FILTER (
-        WHERE p.pago = false
+        WHERE COALESCE(p.pago, false) = false
+          AND a.inativo = false
       ) AS inadimplentes
 
-    FROM public.pagamentos p
-    INNER JOIN public.alunos a
-      ON a.id = p.aluno_id
+    FROM public.alunos a
 
-    WHERE p.mes = $1
+    INNER JOIN public.planos pl
+      ON pl.id = a.plano_id
+
+    LEFT JOIN public.pagamentos p
+      ON p.aluno_id = a.id
+      AND p.mes = $1
     `,
     [mes],
   );
