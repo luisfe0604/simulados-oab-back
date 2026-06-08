@@ -38,11 +38,11 @@ router.use("/enem/exams", enemExamsRoutes);
 
 router.use("/mesas", testsRoutes);
 
-router.use("/presenca", testsRoutesPresenca);
-router.use("/alunos", testsRoutesAlunos);
-router.use("/pagamentos", testsRoutesPagamentos);
-router.use("/dashboard", testsRoutesDashboard);
-router.use("/planos", testsRoutesPlanos);
+router.use("/presenca/presenca", testsRoutesPresenca);
+router.use("/presenca/alunos", testsRoutesAlunos);
+router.use("/presenca/pagamentos", testsRoutesPagamentos);
+router.use("/presenca/dashboard", testsRoutesDashboard);
+router.use("/presenca/planos", testsRoutesPlanos);
 
 
 module.exports = router;
