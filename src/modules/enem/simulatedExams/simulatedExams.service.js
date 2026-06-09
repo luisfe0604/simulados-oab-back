@@ -195,7 +195,7 @@ async function generateWrongQuestionsSimulado({ userId, limit = 20 }) {
       q.*,
       e.name as exam_name
     FROM public.questions_enem q
-    LEFT JOIN public.exams e ON e.id = q.exam_id
+    LEFT JOIN public.exams_enem e ON e.id = q.exam_id
     WHERE q.id = ANY($1)
     `,
     [ids],
