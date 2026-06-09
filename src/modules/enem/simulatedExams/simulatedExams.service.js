@@ -179,7 +179,7 @@ async function generateWrongQuestionsSimulado({ userId, limit = 20 }) {
       JOIN public.simulated_exams se ON se.id = seq.simulated_exam_id
     WHERE se.user_id = $1
     AND seq.is_correct = false
-    ORDER BY seq.question_id DESC
+    ORDER BY RANDOM()
     LIMIT $2
     `,
     [userId, limit],
