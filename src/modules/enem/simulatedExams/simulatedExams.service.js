@@ -173,14 +173,17 @@ async function getSimuladoById({ userId, simulatedId }) {
 async function generateWrongQuestionsSimulado({ userId, limit = 20 }) {
   const wrongQuestions = await pool.query(
     `
-    SELECT DISTINCT ON (seq.question_id)
-      seq.question_id
-      FROM public.simulated_exam_questions_enem seq
-      JOIN public.simulated_exams se ON se.id = seq.simulated_exam_id
-    WHERE se.user_id = $1
-    AND seq.is_correct = false
-    ORDER BY RANDOM()
-    LIMIT $2
+    SELECT question_id
+      FROM (
+        SELECT DISTINCT question_id
+        FROM simulated_exam_questions_enem seq
+        JOIN simulated_exams se
+          ON se.id = seq.simulated_exam_id
+        WHERE se.user_id = $1
+        AND seq.is_correct = false
+      ) q
+      ORDER BY RANDOM()
+      LIMIT $2
     `,
     [userId, limit],
   );
@@ -239,7 +242,7 @@ async function generateENEMDay1Simulado() {
       ORDER BY RANDOM()
       LIMIT $2
       `,
-      [id, limit]
+      [id, limit],
     );
 
     simulado = simulado.concat(rows);
@@ -266,7 +269,7 @@ async function generateENEMDay2Simulado() {
       ORDER BY RANDOM()
       LIMIT $2
       `,
-      [id, limit]
+      [id, limit],
     );
 
     simulado = simulado.concat(rows);
@@ -293,7 +296,7 @@ async function generateENEMFullSimulado() {
       ORDER BY RANDOM()
       LIMIT $2
       `,
-      [id, limit]
+      [id, limit],
     );
 
     simulado = simulado.concat(rows);
@@ -309,5 +312,5 @@ module.exports = {
   generateWrongQuestionsSimulado,
   generateENEMFullSimulado,
   generateENEMDay2Simulado,
-  generateENEMDay1Simulado
+  generateENEMDay1Simulado,
 };
